@@ -1,78 +1,98 @@
 import express from 'express';
 import mysql from 'mysql';
 import cors from 'cors';
+import dotenv from 'dotenv';
 
+dotenv.config();
 const app = express();
 
 const db = mysql.createConnection({
-    host: "localhost",
-    port: 3306,
-    user: "root",
-    password: "Sapta1234#",
-    database: "crud"
+    host: process.env.host,
+    port: process.env.port,
+    user: process.env.user,
+    password: process.env.password,
+    database: process.env.database,
+});    
+
+db.connect((err) => {
+    if(err) throw err;
+    console.log("Database Connected");
+    
+    var sql = "CREATE TABLE IF NOT EXISTS user(user_id INT PRIMARY KEY, user_name VARCHAR(50), user_password VARCHAR(50), user_email VARCHAR(50), user_role VARCHAR(50));"
+    db.query(sql, (err, result) => {
+        if(err) throw err;
+        return result;
+    });
 });
 
-app.use(express.json())
-app.use(cors())
+app.use(express.json());
+app.use(cors());
 
-app.get("/", (req, res) => { //everytime user come to the main page or home page below msg will be shown as req and res...
-    res.json("hello this is the backend"); //response sent to the user
-})
+app.get("/", (req, res) => {
+    res.json("hello this is the backend");
+});
 
-app.get("/user", (req, res) => {
-    const q = "SELECT * FROM user"
-    db.query(q, (err,data) => {
-        if(err) return res.json(err)
-        return res.json(data)
-    })
-}) 
+app.get("/users", (req, res) => {
+    const q = "SELECT * FROM user";
+    db.query(q, (err, data) => {
+        if (err) throw err;
+        return res.json(data);
+    });
+});
 
-//to solve auth problem use in mysql workbench : ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_current_password';
+app.get("/users/:id", (req, res) => {
+    const userId = req.params.id;
+    const q = "SELECT * FROM user WHERE user_id = ?";
+    db.query(q, [userId], (err, data) => {
+        if (err) throw err;
+        console.log(err);
+        return res.json(data);
+    });
+});
 
-app.post("/user", (req, res) => {
-    const q = "Insert into user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) values (?)" // to provide security
+app.post("/users", (req, res) => {
+    const q = "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?)";
     const values = [
         req.body.user_id,
         req.body.user_name,
         req.body.user_password,
         req.body.user_email,
-        req.body.user_role // body is from postman body->json
-        ];
+        req.body.user_role
+    ];
 
-         // by default we cann't send any data to our express server. to prevent this write in index app.use(express.json)-> allows us to send any json file using client
- 
     db.query(q, [values], (err, data) => {
-        if(err) return res.json(err)
-        return res.json("User has been created Successfully")
+        if (err) return res.json(err);
+        return res.json("User has been created successfully");
     });
-})
+});
 
-app.delete("/user/:id", (req, res) => {
-    const user_Id = req.params.id;
-    const q = "DELETE FROM user WHERE user_id = ?"
-    db.query(q,[user_Id], (err, data)=> {
-        if(err) return res.json(err)
-        return res.json("User has been deleted Successfully")
-    })
-})
+app.delete("/users/:id", (req, res) => {
+    const userId = req.params.id;
+    const q = "DELETE FROM user WHERE user_id = ?";
+    db.query(q, [userId], (err, data) => {
+        if (err) return res.json(err);
+        return res.json("User has been deleted successfully");
+    });
+});
 
-app.put("/user/:id", (req, res) => {
-    const user_Id = req.params.id;
-    const q = "UPDATE user SET `user_name` = ?, `user_password` = ?, `user_email` = ?, `user_role` = ? WHERE user_id = ?"
+app.put("/users/:id", (req, res) => {
+    const userId = req.params.id;
+    const q = "UPDATE user SET `user_name` = ?, `user_password` = ?, `user_email` = ?, `user_role` = ? WHERE user_id = ?";
     const values = [
         req.body.user_name,
         req.body.user_password,
         req.body.user_email,
-        req.body.user_role
-    ]
+        req.body.user_role,
+        userId
+    ];
 
-    db.query(q,[...values,user_Id], (err, data)=> {
-        if(err) return res.json(err)
-        return res.json("User has been updated Successfully")
-    })
-})
+    db.query(q, values, (err, data) => {
+        if (err) return res.json(err);
+        return res.json("User has been updated successfully");
+    });
+});
 
-
-app.listen(8080, ()=>{
-    console.log("Connected to backend");
-}) // to run our app
+const PORT = 3001;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
