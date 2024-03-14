@@ -50,6 +50,16 @@ app.get("/users/:id", (req, res) => {
     });
 });
 
+app.get("/users/:email", (req, res) => {
+    const email = req.params.email;
+    const q = "SELECT * FROM user WHERE user_email = ?";
+    db.query(q, [email], (err, data) => {
+        if (err) throw err;
+        console.log(err);
+        return res.json(data);
+    });
+});
+
 app.post("/users", (req, res) => {
     const q = "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?)";
     const values = [
