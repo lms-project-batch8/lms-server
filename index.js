@@ -50,20 +50,22 @@ app.get("/users/:id", (req, res) => {
     });
 });
 
-app.get("/users/search", (req, res) => {
-    const { email } = req.query;
-    
+app.get("/search", (req, res) => {
+    const {email} = req.query;
+
+    console.log(email);
+
     if (!email) {
         return res.status(400).send('Email is required');
     }
     
-    const q = "SELECT * FROM user WHERE user_email = ?";
+    const q = 'SELECT * FROM user WHERE user_email = ?';
 
     db.query(q, [email], (err, data) => {
         if (err) throw err;
         console.log(err);
 
-        if(data > 0) {
+        if(data.length > 0) {
             return res.json(data);
         } else {
             res.status(404).send('User not found');
@@ -113,7 +115,7 @@ app.put("/users/:id", (req, res) => {
     });
 });
 
-const PORT = 3001;
-app.listen(process.env.PORT || PORT, () => {
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
