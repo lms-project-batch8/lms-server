@@ -50,13 +50,24 @@ app.get("/users/:id", (req, res) => {
     });
 });
 
-app.get("/users/:email", (req, res) => {
-    const email = req.params.email;
+app.get("/users/search", (req, res) => {
+    const { email } = req.query;
+    
+    if (!email) {
+        return res.status(400).send('Email is required');
+    }
+    
     const q = "SELECT * FROM user WHERE user_email = ?";
+
     db.query(q, [email], (err, data) => {
         if (err) throw err;
         console.log(err);
-        return res.json(data);
+
+        if(data > 0) {
+            return res.json(data);
+        } else {
+            res.status(404).send('User not found');
+        }
     });
 });
 
