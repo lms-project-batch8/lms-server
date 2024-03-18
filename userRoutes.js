@@ -2,7 +2,7 @@ import express from 'express';
 const router = express.Router();
 import {db} from './db_connection.js';
 
-router.get("/users", (req, res) => {
+router.get("/", (req, res) => {
     const q = "SELECT * FROM user";
     db.query(q, (err, data) => {
         if (err) throw err;
@@ -10,7 +10,7 @@ router.get("/users", (req, res) => {
     });
 });
 
-router.get("/users/:id", (req, res) => {
+router.get("/:id", (req, res) => {
     const userId = req.params.id;
     const q = "SELECT * FROM user WHERE user_id = ?";
     db.query(q, [userId], (err, data) => {
@@ -43,7 +43,7 @@ router.get("/search", (req, res) => {
     });
 });
 
-router.post("/users", (req, res) => {
+router.post("/", (req, res) => {
     const q = "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?)";
     const values = [
         req.body.user_id,
@@ -59,7 +59,7 @@ router.post("/users", (req, res) => {
     });
 });
 
-router.delete("/users/:id", (req, res) => {
+router.delete("/:id", (req, res) => {
     const userId = req.params.id;
     const q = "DELETE FROM user WHERE user_id = ?";
     
@@ -69,7 +69,7 @@ router.delete("/users/:id", (req, res) => {
     });
 });
 
-router.put("/users/:id", (req, res) => {
+router.put("/:id", (req, res) => {
     const userId = req.params.id;
     const q = "UPDATE user SET `user_name` = ?, `user_password` = ?, `user_email` = ?, `user_role` = ? WHERE user_id = ?";
     const values = [

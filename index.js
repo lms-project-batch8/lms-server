@@ -4,7 +4,8 @@ import dotenv from 'dotenv';
 import QuizRoutes from './quizRoutes.js';
 import QuestionRoutes from './questionRoutes.js';
 import OptionRoutes from "./optionRoutes.js"
-import userRoutes from "./userRoutes.js"
+import UserRoutes from "./userRoutes.js"
+import {db} from './db_connection.js';
 
 dotenv.config();
 const app = express();
@@ -12,7 +13,30 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.use("/users", userRoutes);
+app.get("/search", (req, res) => {
+    const {email} = req.query;
+
+    console.log(email);
+
+    if (!email) {
+        return res.status(400).send('Email is required');
+    }
+    
+    const q = 'SELECT * FROM user WHERE user_email = ?';
+
+    db.query(q, [email], (err, data) => {
+        if (err) throw err;
+        console.log(err);
+
+        if(data.length > 0) {
+            return res.json(data);
+        } else {
+            res.status(404).send('User not found');
+        }
+    });
+});
+
+app.use("/users", UserRoutes);
 app.use("/quiz", QuizRoutes);
 app.use("/question", QuestionRoutes);
 app.use("/option", OptionRoutes);
