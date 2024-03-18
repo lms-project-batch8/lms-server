@@ -9,33 +9,33 @@ router.get('/',(req,res)=>{
     })
 })
 
-const sqlQuery = `SELECT
-q.quiz_id AS quiz_id,
-q.title AS title,
-q.description AS description,
-q.duration_minutes AS duration_minutes,
-q.created_at AS created_at,
-qs.question_id AS question_id,
-qs.question_text AS question_text,
-qs.question_type AS question_type,
-qs.created_at AS created_at,
-o.option_id AS option_id,
-o.option_text AS option_text,
-o.is_correct AS is_correct,
-o.created_at AS created_at
-FROM
-Quiz q
-JOIN
-Question qs ON question_id = qs.quiz_id
-JOIN
-Options o ON qs.question_id = o.question_id;`
+// const sqlQuery = `SELECT
+// q.quiz_id AS quiz_id,
+// q.title AS title,
+// q.description AS description,
+// q.duration_minutes AS duration_minutes,
+// q.created_at AS created_at,
+// qs.question_id AS question_id,
+// qs.question_text AS question_text,
+// qs.question_type AS question_type,
+// qs.created_at AS created_at,
+// o.option_id AS option_id,
+// o.option_text AS option_text,
+// o.is_correct AS is_correct,
+// o.created_at AS created_at
+// FROM
+// Quiz q
+// JOIN
+// Question qs ON question_id = qs.quiz_id
+// JOIN
+// Options o ON qs.question_id = o.question_id;`
 
-router.get('/all',(req,res)=>{
-    db.query(sqlQuery,(err,data) => {
-        if(err) return res.json(err)
-        return res.json(data);
-    })
-})
+// router.get('/all',(req,res)=>{
+//     db.query(sqlQuery,(err,data) => {
+//         if(err) return res.json(err)
+//         return res.json(data);
+//     })
+// })
 
 // const jsonArray = results.map(row => ({
 //     QuizID: row.quiz_id,

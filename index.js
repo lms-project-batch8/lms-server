@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import QuizRoutes from './quizRoutes.js';
 import QuestionRoutes from './questionRoutes.js';
 import OptionRoutes from "./optionRoutes.js"
+import userRoutes from "./userRoutes.js"
 
 dotenv.config();
 const app = express();
@@ -11,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.use("/option", OptionRoutes);
+app.use("/users", userRoutes);
 app.use("/quiz", QuizRoutes);
 app.use("/question", QuestionRoutes);
 app.use("/option", OptionRoutes);
