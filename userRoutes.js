@@ -20,29 +20,6 @@ router.get("/:id", (req, res) => {
     });
 });
 
-router.get("/search", (req, res) => {
-    const {email} = req.query;
-
-    console.log(email);
-
-    if (!email) {
-        return res.status(400).send('Email is required');
-    }
-    
-    const q = 'SELECT * FROM user WHERE user_email = ?';
-
-    db.query(q, [email], (err, data) => {
-        if (err) throw err;
-        console.log(err);
-
-        if(data.length > 0) {
-            return res.json(data);
-        } else {
-            res.status(404).send('User not found');
-        }
-    });
-});
-
 router.post("/", (req, res) => {
     const q = "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?)";
     const values = [

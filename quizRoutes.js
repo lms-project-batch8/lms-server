@@ -2,71 +2,127 @@ import express from 'express';
 const router = express.Router();
 import {db} from './db_connection.js';
 
-router.get('/',(req,res)=>{
-    db.query('SELECT * FROM Quiz',(err,data) => {
-        if(err) return res.json(err)
-        return res.json(data)
-    })
-})
+router.get('/', (req, res) => {
+    const sqlQuery = `
+        SELECT
+            q.quiz_id,
+            q.title,
+            q.description,
+            q.duration_minutes,
+            q.created_at AS quiz_created_at,
+            qs.question_id,
+            qs.question_text,
+            qs.question_type,
+            qs.created_at AS question_created_at,
+            o.option_id,
+            o.option_text,
+            o.is_correct,
+            o.created_at AS option_created_at
+        FROM
+            Quiz q
+        LEFT JOIN
+            Question qs ON q.quiz_id = qs.quiz_id
+        LEFT JOIN
+            Options o ON qs.question_id = o.question_id;
+    `;
 
-// const sqlQuery = `SELECT
-// q.quiz_id AS quiz_id,
-// q.title AS title,
-// q.description AS description,
-// q.duration_minutes AS duration_minutes,
-// q.created_at AS created_at,
-// qs.question_id AS question_id,
-// qs.question_text AS question_text,
-// qs.question_type AS question_type,
-// qs.created_at AS created_at,
-// o.option_id AS option_id,
-// o.option_text AS option_text,
-// o.is_correct AS is_correct,
-// o.created_at AS created_at
-// FROM
-// Quiz q
-// JOIN
-// Question qs ON question_id = qs.quiz_id
-// JOIN
-// Options o ON qs.question_id = o.question_id;`
+    db.query(sqlQuery, (err, data) => {
+        if (err) return res.json(err);
 
-// router.get('/all',(req,res)=>{
-//     db.query(sqlQuery,(err,data) => {
-//         if(err) return res.json(err)
-//         return res.json(data);
-//     })
-// })
+        const quizzes = data.reduce((acc, row) => {
+            let quiz = acc.find(q => q.quiz_id === row.quiz_id);
+            if (!quiz) {
+                quiz = {
+                    quiz_id: row.quiz_id,
+                    title: row.title,
+                    description: row.description,
+                    duration_minutes: row.duration_minutes,
+                    created_at: row.quiz_created_at,
+                    questions: [],
+                };
+                acc.push(quiz);
+            }
 
-// const jsonArray = results.map(row => ({
-//     QuizID: row.quiz_id,
-//     QuizTitle: row.title,
-//     QuizDescription: row.description,
-//     QuizTimeLimit: row.duration_minutes,
-//     QuizCreationDate: row.created_at,
-//     QuestionID: row.question_id,
-//     QuestionText: row.question_text,
-//     OptionID: row.option_id,
-//     OptionText: row.option_text,
-//     IsOptionCorrect: row.is_correct
-//   }));
+            let question = quiz.questions.find(q => q.question_id === row.question_id);
+            if (!question) {
+                question = {
+                    question_id: row.question_id,
+                    question_text: row.question_text,
+                    question_type: row.question_type,
+                    created_at: row.question_created_at,
+                    options: [],
+                };
+                quiz.questions.push(question);
+            }
 
-//   // Print the JSON array
-//   console.log(jsonArray);
+            if (row.option_id) {
+                const option = {
+                    option_id: row.option_id,
+                    option_text: row.option_text,
+                    is_correct: row.is_correct,
+                    created_at: row.option_created_at,
+                };
+                question.options.push(option);
+            }
 
-router.post("/", (req, res) => {
-    const q = "Insert into Quiz(`title`, `description`, `duration_minutes`) values (?)"
-    const values = [
-        req.body.title,
-        req.body.description,
-        req.body.duration_minutes,
+            return acc;
+        }, []);
+
+        return res.json(quizzes);
+    });
+});
+
+async function createQuestionsWithOptions(questions, quizId) {
+    for (const question of questions) {
+        const questionInsertQuery = "INSERT INTO Question(quiz_id, question_text) VALUES (?)";
+        const questionValues = [
+            quizId,
+            question.questionText,
         ];
 
- 
-    db.query(q, [values], (err, data) => {
-        if(err) return res.json(err)
-        return res.json("Quiz has been created Successfully")
+        const questionInsertResult = await new Promise((resolve, reject) => {
+            db.query(questionInsertQuery, [questionValues], (err, data) => {
+                if (err) reject(err);
+                resolve(data);
+            });
+        });
+
+        const questionId = questionInsertResult.insertId;
+
+        for (const optionText of question.options) {
+            const optionInsertQuery = "INSERT INTO Options(question_id, option_text, is_correct) VALUES (?)";
+            const isCorrect = optionText === question.correctAnswer;
+            const optionValues = [questionId, optionText, isCorrect];
+
+            await new Promise((resolve, reject) => {
+                db.query(optionInsertQuery, [optionValues], (err, data) => {
+                    if (err) reject(err);
+                    resolve(data);
+                });
+            });
+        }
+    }
+}
+
+router.post("/", async (req, res) => {
+    const { quizName, quizDuration, questions } = req.body;
+    const quizInsertQuery = "INSERT INTO Quiz(title, duration_minutes) VALUES (?)";
+    const quizValues = [quizName, parseInt(quizDuration)];
+
+    db.query(quizInsertQuery, [quizValues], async (err, data) => {
+        if (err) return res.json(err);
+        const quizId = data.insertId;
+
+        try {
+            await createQuestionsWithOptions(questions, quizId);
+            res.json({ message: "Quiz, questions, and options created successfully" });
+        } catch (error) {
+            // Rollback or handle error as necessary
+            console.error("Error creating questions/options:", error);
+            res.json(error);
+        }
     });
-})
+});
 
 
 router.put("/:id", (req, res) => {
