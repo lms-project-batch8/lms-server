@@ -54,14 +54,13 @@ router.get('/all',(req,res)=>{
 //   console.log(jsonArray);
 
 router.post("/", (req, res) => {
-    const q = "Insert into Quiz(`title`, `description`, `duration_minutes`) values (?)" // to provide security
+    const q = "Insert into Quiz(`title`, `description`, `duration_minutes`) values (?)"
     const values = [
         req.body.title,
         req.body.description,
         req.body.duration_minutes,
         ];
 
-         // by default we cann't send any data to our express server. to prevent this write in index app.use(express.json)-> allows us to send any json file using client
  
     db.query(q, [values], (err, data) => {
         if(err) return res.json(err)
