@@ -2,31 +2,35 @@ import express from 'express';
 import mysql from 'mysql';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import QuizRoutes from './quizRoutes.js';
+import {db} from './db_connection.js';
 
 dotenv.config();
 const app = express();
 
-const db = mysql.createConnection({
-    host: process.env.host,
-    port: process.env.port,
-    user: process.env.user,
-    password: process.env.password,
-    database: process.env.database,
-});    
+// const db = mysql.createConnection({
+//     host: process.env.host,
+//     port: process.env.port,
+//     user: process.env.user,
+//     password: process.env.password,
+//     database: process.env.database,
+// });    
 
-db.connect((err) => {
-    if(err) throw err;
-    console.log("Database Connected");
+// db.connect((err) => {
+//     if(err) throw err;
+//     console.log("Database Connected");
     
-    var sql = "CREATE TABLE IF NOT EXISTS user(user_id INT PRIMARY KEY, user_name VARCHAR(50), user_password VARCHAR(50), user_email VARCHAR(50), user_role VARCHAR(50));"
-    db.query(sql, (err, result) => {
-        if(err) throw err;
-        return result;
-    });
-});
+//     var sql = "CREATE TABLE IF NOT EXISTS user(user_id INT PRIMARY KEY, user_name VARCHAR(50), user_password VARCHAR(50), user_email VARCHAR(50), user_role VARCHAR(50));"
+//     db.query(sql, (err, result) => {
+//         if(err) throw err;
+//         return result;
+//     });
+// });
 
 app.use(express.json());
 app.use(cors());
+
+app.use("/quiz", QuizRoutes);
 
 app.get("/", (req, res) => {
     res.json("hello this is the backend");
@@ -92,6 +96,7 @@ app.post("/users", (req, res) => {
 app.delete("/users/:id", (req, res) => {
     const userId = req.params.id;
     const q = "DELETE FROM user WHERE user_id = ?";
+    
     db.query(q, [userId], (err, data) => {
         if (err) return res.json(err);
         return res.json("User has been deleted successfully");
