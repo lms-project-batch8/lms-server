@@ -16,8 +16,6 @@ router.post("/", (req, res) => {
         req.body.question_text,
         req.body.question_type,
         ];
-
-         // by default we cann't send any data to our express server. to prevent this write in index app.use(express.json)-> allows us to send any json file using client
  
     db.query(q, [values], (err, data) => {
         if(err) return res.json(err)

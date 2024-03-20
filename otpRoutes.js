@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
   
 router.post('/send-otp', async (req, res) => {
 
-    const {email} = req.body;
+    const { email } = req.body;
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
