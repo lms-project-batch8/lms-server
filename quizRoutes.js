@@ -14,6 +14,7 @@ router.get('/', (req, res) => {
             qs.question_text,
             qs.question_type,
             qs.created_at AS question_created_at,
+            qs.correct_ans,
             o.option_id,
             o.option_text,
             o.is_correct,
@@ -50,6 +51,7 @@ router.get('/', (req, res) => {
                     question_text: row.question_text,
                     question_type: row.question_type,
                     created_at: row.question_created_at,
+                    correct_ans: row.correct_ans,
                     options: [],
                 };
                 quiz.questions.push(question);
@@ -74,10 +76,11 @@ router.get('/', (req, res) => {
 
 async function createQuestionsWithOptions(questions, quizId) {
     for (const question of questions) {
-        const questionInsertQuery = "INSERT INTO Question(quiz_id, question_text) VALUES (?)";
+        const questionInsertQuery = "INSERT INTO Question(quiz_id, question_text, correct_ans) VALUES (?)";
         const questionValues = [
             quizId,
             question.questionText,
+            question.correctAns
         ];
 
         const questionInsertResult = await new Promise((resolve, reject) => {
@@ -90,9 +93,9 @@ async function createQuestionsWithOptions(questions, quizId) {
         const questionId = questionInsertResult.insertId;
 
         for (const optionText of question.options) {
-            const optionInsertQuery = "INSERT INTO Options(question_id, option_text, is_correct) VALUES (?)";
-            const isCorrect = optionText === question.correctAnswer;
-            const optionValues = [questionId, optionText, isCorrect];
+            const optionInsertQuery = "INSERT INTO Options(question_id, option_text) VALUES (?)";
+            const correctAns = question.correctAnswer;
+            const optionValues = [questionId, optionText];
 
             await new Promise((resolve, reject) => {
                 db.query(optionInsertQuery, [optionValues], (err, data) => {
@@ -117,6 +120,7 @@ router.get('/:id', (req, res) => {
             qs.question_text,
             qs.question_type,
             qs.created_at AS question_created_at,
+            qs.correct_ans,
             o.option_id,
             o.option_text,
             o.is_correct,
@@ -153,6 +157,7 @@ router.get('/:id', (req, res) => {
                     question_text: row.question_text,
                     question_type: row.question_type,
                     created_at: row.question_created_at,
+                    correct_ans: row.correct_ans,
                     options: [],
                 };
                 acc.questions.push(question);
@@ -182,22 +187,40 @@ router.get('/:id', (req, res) => {
 
 router.post("/", async (req, res) => {
     const { quizName, quizDuration, questions } = req.body;
-    const quizInsertQuery = "INSERT INTO Quiz(title, duration_minutes) VALUES (?)";
-    const quizValues = [quizName, parseInt(quizDuration)];
 
-    db.query(quizInsertQuery, [quizValues], async (err, data) => {
-        if (err) return res.json(err);
-        const quizId = data.insertId;
+    console.log(questions);
+  
+  db.query('INSERT INTO Quiz (title, description, duration_minutes, created_at) VALUES (?, ?, ?, NOW())', [quizName, '', quizDuration], (err, quizResults) => {
+    if (err) {
+      console.error('Error inserting quiz data:', err);
+      return res.status(500).send({ message: 'Error creating quiz' });
+    }
 
-        try {
-            await createQuestionsWithOptions(questions, quizId);
-            res.json({ message: "Quiz, questions, and options created successfully" });
-        } catch (error) {
-            // Rollback or handle error as necessary
-            console.error("Error creating questions/options:", error);
-            res.json(error);
+    const quizId = quizResults.insertId;
+
+    questions.forEach(question => {
+      db.query('INSERT INTO Question (quiz_id, question_text, created_at, correct_ans) VALUES (?, ?, NOW(), ?)', [quizId, question.questionText, question.correctAnswer], (err, questionResults) => {
+        if (err) {
+          console.error('Error inserting question data:', err);
+          return; // Handle error
         }
+
+        const questionId = questionResults.insertId;
+
+        question.options.forEach(option => {
+          // Insert option data
+          db.query('INSERT INTO Options (question_id, option_text, is_correct, created_at) VALUES (?, ?, ?, NOW())', [questionId, option.text, option.text === question.correctAnswer], (err, optionResults) => {
+            if (err) {
+              console.error('Error inserting option data:', err);
+              return; // Handle error
+            }
+          });
+        });
+      });
     });
+
+    res.status(201).send({ message: 'Quiz successfully created', quizId: quizId });
+  });
 });
 
 router.put("/:id", (req, res) => {
