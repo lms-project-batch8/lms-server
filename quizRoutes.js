@@ -15,6 +15,7 @@ router.get('/', (req, res) => {
             qs.question_type,
             qs.created_at AS question_created_at,
             qs.correct_ans,
+            qs.question_marks,
             o.option_id,
             o.option_text,
             o.is_correct,
@@ -52,6 +53,7 @@ router.get('/', (req, res) => {
                     question_type: row.question_type,
                     created_at: row.question_created_at,
                     correct_ans: row.correct_ans,
+                    question_marks: row.question_marks,
                     options: [],
                 };
                 quiz.questions.push(question);
@@ -74,39 +76,6 @@ router.get('/', (req, res) => {
     });
 });
 
-async function createQuestionsWithOptions(questions, quizId) {
-    for (const question of questions) {
-        const questionInsertQuery = "INSERT INTO Question(quiz_id, question_text, correct_ans) VALUES (?)";
-        const questionValues = [
-            quizId,
-            question.questionText,
-            question.correctAns
-        ];
-
-        const questionInsertResult = await new Promise((resolve, reject) => {
-            db.query(questionInsertQuery, [questionValues], (err, data) => {
-                if (err) reject(err);
-                resolve(data);
-            });
-        });
-
-        const questionId = questionInsertResult.insertId;
-
-        for (const optionText of question.options) {
-            const optionInsertQuery = "INSERT INTO Options(question_id, option_text) VALUES (?)";
-            const correctAns = question.correctAnswer;
-            const optionValues = [questionId, optionText];
-
-            await new Promise((resolve, reject) => {
-                db.query(optionInsertQuery, [optionValues], (err, data) => {
-                    if (err) reject(err);
-                    resolve(data);
-                });
-            });
-        }
-    }
-}
-
 router.get('/:id', (req, res) => {
     const quizId = req.params.id;
     const sqlQuery = `
@@ -121,6 +90,7 @@ router.get('/:id', (req, res) => {
             qs.question_type,
             qs.created_at AS question_created_at,
             qs.correct_ans,
+            qs.question_marks,
             o.option_id,
             o.option_text,
             o.is_correct,
@@ -158,6 +128,7 @@ router.get('/:id', (req, res) => {
                     question_type: row.question_type,
                     created_at: row.question_created_at,
                     correct_ans: row.correct_ans,
+                    question_marks: row.question_marks,
                     options: [],
                 };
                 acc.questions.push(question);
@@ -199,20 +170,19 @@ router.post("/", async (req, res) => {
     const quizId = quizResults.insertId;
 
     questions.forEach(question => {
-      db.query('INSERT INTO Question (quiz_id, question_text, created_at, correct_ans) VALUES (?, ?, NOW(), ?)', [quizId, question.questionText, question.correctAnswer], (err, questionResults) => {
+      db.query('INSERT INTO Question (quiz_id, question_text, created_at, correct_ans, question_marks) VALUES (?, ?, NOW(), ?, ?)', [quizId, question.questionText, question.correctAnswer, question.marks], (err, questionResults) => {
         if (err) {
           console.error('Error inserting question data:', err);
-          return; // Handle error
+          return;
         }
 
         const questionId = questionResults.insertId;
 
         question.options.forEach(option => {
-          // Insert option data
           db.query('INSERT INTO Options (question_id, option_text, is_correct, created_at) VALUES (?, ?, ?, NOW())', [questionId, option.text, option.text === question.correctAnswer], (err, optionResults) => {
             if (err) {
               console.error('Error inserting option data:', err);
-              return; // Handle error
+              return;
             }
           });
         });
@@ -254,8 +224,6 @@ router.put("/:id", (req, res) => {
         return res.json("Quiz has been updated Successfully")
     })
 })
-
-
 
 router.delete("/:id", (req, res) => {
     const quiz_id = req.params.id;
