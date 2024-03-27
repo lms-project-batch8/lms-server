@@ -7,6 +7,7 @@ import OptionRoutes from "./optionRoutes.js"
 import UserRoutes from "./userRoutes.js"
 import {db} from './db_connection.js';
 import OtpRoutes from './otpRoutes.js';
+import MarksRoutes from './marksRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -42,6 +43,7 @@ app.use("/quiz", QuizRoutes);
 app.use("/question", QuestionRoutes);
 app.use("/option", OptionRoutes);
 app.use(OtpRoutes);
+app.use("/marks", MarksRoutes);
 
 app.get("/", (req, res) => {
     res.json("hello this is the backend");

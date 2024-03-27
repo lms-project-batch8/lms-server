@@ -10,7 +10,7 @@ router.get('/',(req,res)=>{
 })
 
 router.post("/", (req, res) => {
-    const q = "Insert into Marks(`quiz_id`, `user_id`,`marks`) values (?)" // to provide security
+    const q = "Insert into Marks(`quiz_id`, `user_id`,`marks`) values (?)"
     const values = [
         req.body.quiz_id,
         req.body.user_id,
