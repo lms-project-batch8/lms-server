@@ -49,11 +49,11 @@ router.delete("/:id", (req, res) => {
 router.put("/:id", (req, res) => {
     const userId = req.params.id;
     const updateFields = Object.entries(req.body)
-        .filter(([_, value]) => value !== undefined) // Remove fields that are undefined
-        .map(([key, value]) => `${key} = ?`).join(', '); // Create the SET part of the query
+        .filter(([_, value]) => value !== undefined) 
+        .map(([key, value]) => `${key} = ?`).join(', '); 
 
     const values = Object.values(req.body).filter(value => value !== undefined);
-    values.push(userId); // Add userId at the end for the WHERE clause
+    values.push(userId);
 
     if (!updateFields) {
         return res.status(400).json({ error: "No valid fields provided for update." });
