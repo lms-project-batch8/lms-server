@@ -23,4 +23,14 @@ router.post("/", (req, res) => {
     });
 });
 
+router.get("/:quizId", (req, res) => {
+    const quiz_id = req.params.quizId;
+    const q = "Select u.user_name, m.marks from Marks m join user u on u.user_id = m.user_id where m.quiz_id = ?";
+
+    db.query(q, [quiz_id], (err, data) => {
+        if(err) return res.json(err)
+        return res.json(data);
+    });
+});
+
 export default router;
