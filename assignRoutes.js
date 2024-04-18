@@ -44,6 +44,18 @@ router.get("/quiz", (req, res) => {
 
 })
 
+
+router.get("/course", (req, res) => {
+    const {trainee_id} = req.query;
+
+    db.query(`SELECT * from assigned a JOIN courses c on a.course_id = c.course_id WHERE a.trainee_id = ?;`, [ trainee_id ], (err, data) => {
+        if(err) throw res.json(err);
+
+        return res.json(data);
+    })
+
+})
+
  
 router.post("/", (req, res) => {
     const { trainer_id, data, quiz_id, course_id } = req.body;
