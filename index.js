@@ -8,6 +8,11 @@ import UserRoutes from "./userRoutes.js"
 import {db} from './db_connection.js';
 import OtpRoutes from './otpRoutes.js';
 import MarksRoutes from './marksRoutes.js';
+import CourseRoutes from './courseRoutes.js';
+import CourseModulesRoutes from "./course_moduleRoutes.js";
+import VideoRoutes from "./videoRoutes.js";
+import assignRoutes from './assignRoutes.js';
+import CourseProgressRoutes from './course_progressRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -44,6 +49,11 @@ app.use("/question", QuestionRoutes);
 app.use("/option", OptionRoutes);
 app.use(OtpRoutes);
 app.use("/marks", MarksRoutes);
+app.use("/courses", CourseRoutes);
+app.use("/coursemodules", CourseModulesRoutes);
+app.use("/videos", VideoRoutes);
+app.use("/assign", assignRoutes);
+app.use("/courseProgress", CourseProgressRoutes);
 
 app.get("/", (req, res) => {
     res.json("hello this is the backend");

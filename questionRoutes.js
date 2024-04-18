@@ -10,7 +10,7 @@ router.get('/',(req,res)=>{
 })
 
 router.post("/", (req, res) => {
-    const q = "Insert into Question(`quiz_id`, `question_text`,`question_type`) values (?)" // to provide security
+    const q = "Insert into Question(`quiz_id`, `question_text`,`question_type`) values (?)" 
     const values = [
         req.body.quiz_id,
         req.body.question_text,
@@ -40,12 +40,20 @@ router.put("/:id", (req, res) => {
 })
 
 router.delete("/:id", (req, res) => {
-    const quiz_id = req.params.id;
-    const q = "DELETE FROM Quiz WHERE question_id = ?"
-    db.query(q,[question_id], (err, data)=> {
-        if(err) return res.json(err)
-        return res.json("question has been deleted Successfully")
-    })
-})
+    const question_id = req.params.id;
+
+    const deleteOptionsQuery = "DELETE FROM Options WHERE question_id = ?";
+    db.query(deleteOptionsQuery, [question_id], (err, optionsData) => {
+        if (err) return res.json(err);
+
+        const deleteQuestionQuery = "DELETE FROM Question WHERE question_id = ?";
+        db.query(deleteQuestionQuery, [question_id], (err, questionData) => {
+            if (err) return res.json(err);
+
+            return res.json("Question and related options have been deleted successfully");
+        });
+    });
+});
+
 
 export default router;

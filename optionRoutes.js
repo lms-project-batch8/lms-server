@@ -25,7 +25,6 @@ router.post("/", (req, res) => {
     });
 })
 
-
 router.put("/:id", (req, res) => {
     const quiz_id = req.params.id;
     const q = "UPDATE Options SET `question_id` = ?, `option_text` = ?, `is_correct` = ? WHERE option_id = ?"
@@ -41,12 +40,10 @@ router.put("/:id", (req, res) => {
     })
 })
 
-
-
 router.delete("/:id", (req, res) => {
-    const quiz_id = req.params.id;
+    const option_id = req.params.id;
     const q = "DELETE FROM Options WHERE option_id = ?"
-    db.query(q,[option_id], (err, data)=> {
+    db.query(q, [option_id], (err, data)=> {
         if(err) return res.json(err)
         return res.json("Option has been deleted Successfully")
     })

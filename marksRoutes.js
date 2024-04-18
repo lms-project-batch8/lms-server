@@ -2,12 +2,12 @@ import express from 'express';
 const router = express.Router();
 import {db} from './db_connection.js';
 
-router.get('/',(req,res)=>{
-    db.query('SELECT * FROM Marks',(err,data) => {
-        if(err) return res.json(err)
-        return res.json(data)
-    })
-})
+// router.get('/',(req,res)=>{
+//     db.query('SELECT * FROM Marks',(err,data) => {
+//         if(err) return res.json(err)
+//         return res.json(data)
+//     })
+// })
 
 router.post("/", (req, res) => {
     const q = "Insert into Marks(`quiz_id`, `user_id`,`marks`) values (?)"
@@ -32,5 +32,15 @@ router.get("/:quizId", (req, res) => {
         return res.json(data);
     });
 });
+
+router.get("/", (req, res) => {
+    const { user_id } = req.query;
+
+    db.query('SELECT * FROM Marks m JOIN Quiz q on m.quiz_id = q.quiz_id WHERE m.user_id = ?', [ user_id ], (err, data)=> {
+        if(err) throw res.json(err);
+        return res.json(data);
+    })
+})
+
 
 export default router;

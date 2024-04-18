@@ -76,6 +76,7 @@ router.get('/', (req, res) => {
     });
 });
 
+
 router.get('/:id', (req, res) => {
     const quizId = req.params.id;
     const sqlQuery = `
@@ -195,12 +196,10 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", (req, res) => {
     const quiz_id = req.params.id;
-    const q = "UPDATE Quiz SET `title` = ?, `description` = ?, `duration_minutes` = ?, `created_at` = ? WHERE quiz_id = ?"
+    const q = "UPDATE Quiz SET `title` = ?, `duration_minutes` = ? WHERE quiz_id = ?"
     const values = [
         req.body.title,
-        req.body.description,
         req.body.duration_minutes,
-        req.body.created_at
     ]
 
     db.query(q,[...values,quiz_id], (err, data)=> {
@@ -209,21 +208,6 @@ router.put("/:id", (req, res) => {
     })
 })
 
-router.put("/:id", (req, res) => {
-    const quiz_id = req.params.id;
-    const q = "UPDATE Quiz SET `title` = ?, `description` = ?, `duration_minutes` = ?, `created_at` = ? WHERE quiz_id = ?"
-    const values = [
-        req.body.title,
-        req.body.description,
-        req.body.duration_minutes,
-        req.body.created_at
-    ]
-
-    db.query(q,[...values,quiz_id], (err, data)=> {
-        if(err) return res.json(err)
-        return res.json("Quiz has been updated Successfully")
-    })
-})
 
 router.delete("/:id", (req, res) => {
     const quiz_id = req.params.id;

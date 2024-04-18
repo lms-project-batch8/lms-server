@@ -10,6 +10,14 @@ router.get("/", (req, res) => {
     });
 });
 
+router.get("/trainees", (req, res) => {
+    const q = "SELECT * FROM user where user_role = 'Trainee' or user_role = 'trainee'";
+    db.query(q, (err, data) => {
+        if (err) throw err;
+        return res.json(data);
+    });
+});
+
 router.get("/:id", (req, res) => {
     const userId = req.params.id;
     const q = "SELECT * FROM user WHERE user_id = ?";
