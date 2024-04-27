@@ -1,79 +1,86 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import {db} from './db_connection.js';
+import { db } from "./db_connection.js";
 
 router.get("/", (req, res) => {
-    const q = "SELECT * FROM user";
-    db.query(q, (err, data) => {
-        if (err) throw err;
-        return res.json(data);
-    });
-});
+  const { user_name, user_role } = req.query;
 
-router.get("/trainees", (req, res) => {
-    const q = "SELECT * FROM user where user_role = 'Trainee' or user_role = 'trainee'";
-    db.query(q, (err, data) => {
-        if (err) throw err;
-        return res.json(data);
+  if (user_name) {
+    const q = "SELECT * FROM user WHERE user_name = ?";
+    db.query(q, [user_name], (err, data) => {
+      if (err) throw err;
+      return res.json(data);
     });
+  }
+
+  if (user_role) {
+    const q = "SELECT * FROM user WHERE user_role = ?";
+    db.query(q, [user_role], (err, data) => {
+      if (err) throw err;
+      return res.json(data);
+    });
+  }
 });
 
 router.get("/:id", (req, res) => {
-    const userId = req.params.id;
-    const q = "SELECT * FROM user WHERE user_id = ?";
-    db.query(q, [userId], (err, data) => {
-        if (err) throw err;
-        console.log(err);
-        return res.json(data);
-    });
+  const userId = req.params.id;
+  const q = "SELECT * FROM user WHERE user_id = ?";
+  db.query(q, [userId], (err, data) => {
+    if (err) throw err;
+    console.log(err);
+    return res.json(data);
+  });
 });
 
 router.post("/", (req, res) => {
-    const q = "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?)";
-    const values = [
-        req.body.user_id,
-        req.body.user_name,
-        req.body.user_password,
-        req.body.user_email,
-        req.body.user_role
-    ];
+  const q =
+    "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?)";
+  const values = [
+    req.body.user_id,
+    req.body.user_name,
+    req.body.user_password,
+    req.body.user_email,
+    req.body.user_role,
+  ];
 
-    db.query(q, [values], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("User has been created successfully");
-    });
+  db.query(q, [values], (err, data) => {
+    if (err) return res.json(err);
+    return res.json("User has been created successfully");
+  });
 });
 
 router.delete("/:id", (req, res) => {
-    const userId = req.params.id;
-    const q = "DELETE FROM user WHERE user_id = ?";
-    
-    db.query(q, [userId], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("User has been deleted successfully");
-    });
+  const userId = req.params.id;
+  const q = "DELETE FROM user WHERE user_id = ?";
+
+  db.query(q, [userId], (err, data) => {
+    if (err) return res.json(err);
+    return res.json("User has been deleted successfully");
+  });
 });
 
 router.put("/:id", (req, res) => {
-    const userId = req.params.id;
-    const updateFields = Object.entries(req.body)
-        .filter(([_, value]) => value !== undefined) 
-        .map(([key, value]) => `${key} = ?`).join(', '); 
+  const userId = req.params.id;
+  const updateFields = Object.entries(req.body)
+    .filter(([_, value]) => value !== undefined)
+    .map(([key, value]) => `${key} = ?`)
+    .join(", ");
 
-    const values = Object.values(req.body).filter(value => value !== undefined);
-    values.push(userId);
+  const values = Object.values(req.body).filter((value) => value !== undefined);
+  values.push(userId);
 
-    if (!updateFields) {
-        return res.status(400).json({ error: "No valid fields provided for update." });
-    }
+  if (!updateFields) {
+    return res
+      .status(400)
+      .json({ error: "No valid fields provided for update." });
+  }
 
-    const q = `UPDATE user SET ${updateFields} WHERE user_id = ?`;
+  const q = `UPDATE user SET ${updateFields} WHERE user_id = ?`;
 
-    db.query(q, values, (err, data) => {
-        if (err) return res.json(err);
-        return res.json("User has been updated successfully");
-    });
+  db.query(q, values, (err, data) => {
+    if (err) return res.json(err);
+    return res.json("User has been updated successfully");
+  });
 });
-
 
 export default router;
