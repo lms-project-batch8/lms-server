@@ -58,7 +58,7 @@ router.delete("/:id", (req, res) => {
   const q = "DELETE FROM user WHERE user_id = ?";
 
   db.query(q, [userId], (err, data) => {
-    if (err) return res.json(err);
+    if (err) throw err;
     return res.json("User has been deleted successfully");
   });
 });
@@ -82,7 +82,7 @@ router.put("/:id", (req, res) => {
   const q = `UPDATE user SET ${updateFields} WHERE user_id = ?`;
 
   db.query(q, values, (err, data) => {
-    if (err) return res.json(err);
+    if (err) throw err;
     return res.json("User has been updated successfully");
   });
 });
