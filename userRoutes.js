@@ -48,7 +48,7 @@ router.post("/", (req, res) => {
   ];
 
   db.query(q, [values], (err, data) => {
-    if (err) return res.json(err);
+    if (err) throw err;
     return res.json("User has been created successfully");
   });
 });
