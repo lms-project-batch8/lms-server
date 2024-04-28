@@ -11,10 +11,14 @@ router.get("/", (req, res) => {
       if (err) throw err;
       return res.json(data);
     });
-  }
-
-  if (user_role) {
+  } else if (user_role) {
     const q = "SELECT * FROM user WHERE user_role = ?";
+    db.query(q, [user_role], (err, data) => {
+      if (err) throw err;
+      return res.json(data);
+    });
+  } else {
+    const q = "SELECT * FROM user";
     db.query(q, [user_role], (err, data) => {
       if (err) throw err;
       return res.json(data);
