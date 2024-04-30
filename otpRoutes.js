@@ -11,8 +11,8 @@ router.post('/send-otp', async (req, res) => {
         host: 'smtp.gmail.com',
         port: 587,
         auth: {
-            user: 'souvik13.12.2000@gmail.com',
-            pass: 'ohyt fniy lvbe hvwy'
+            user: 'lms.project.batch8@gmail.com',
+            pass: 'suhb pbaz mhsy ljsa'
         }
     });
 
