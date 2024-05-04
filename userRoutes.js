@@ -40,7 +40,7 @@ router.post("/", (req, res) => {
   const { userId, name, email, password, role } = req.body;
 
   const q =
-    "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?, ?, ?, ?, ?)";
+    "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`, `isActive`) VALUES (?, ?, ?, ?, ?, 1)";
 
   db.query(q, [userId, name, password, email, role], (err, data) => {
     if (err) throw err;
