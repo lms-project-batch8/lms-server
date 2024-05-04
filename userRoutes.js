@@ -37,17 +37,12 @@ router.get("/:id", (req, res) => {
 });
 
 router.post("/", (req, res) => {
-  const q =
-    "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?)";
-  const values = [
-    req.body.user_id,
-    req.body.user_name,
-    req.body.user_password,
-    req.body.user_email,
-    req.body.user_role,
-  ];
+  const { userId, name, email, password, role } = req.body;
 
-  db.query(q, [values], (err, data) => {
+  const q =
+    "INSERT INTO user(`user_id`, `user_name`, `user_password`, `user_email`, `user_role`) VALUES (?, ?, ?, ?, ?)";
+
+  db.query(q, [userId, name, password, email, role], (err, data) => {
     if (err) throw err;
     return res.json("User has been created successfully");
   });
