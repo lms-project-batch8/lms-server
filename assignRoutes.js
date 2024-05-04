@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();
 import { db } from "./db_connection.js";
+import nodemailer from "nodemailer";
 
 router.post("/course", (req, res) => {
   const { trainer_id, trainee_ids, course_id } = req.body;
@@ -30,7 +31,7 @@ router.post("/course", (req, res) => {
         console.log(trainee_ids[index].label);
 
         db.query(
-          "SELECT user_id FROM user WHERE user_name = ?",
+          "SELECT user_id, user_email, user_name FROM user WHERE user_name = ?",
           [trainee_name],
           (err, result) => {
             if (err) {
@@ -42,7 +43,7 @@ router.post("/course", (req, res) => {
               });
             }
             const trainee_id = result[0].user_id;
-            console.log(trainee_id);
+            const trainee_email = result[0].user_email;
 
             const assignSql = `
                 INSERT INTO assigned (trainer_id, trainee_id, quiz_id, course_id, assigned_at)
@@ -53,7 +54,6 @@ router.post("/course", (req, res) => {
               assignSql,
               [trainer_id, trainee_id, course_id],
               (assignErr, assignResult) => {
-                console.log(trainee_id);
                 if (assignErr) {
                   return db.rollback(() => {
                     res.status(500).send({
@@ -62,6 +62,65 @@ router.post("/course", (req, res) => {
                     });
                   });
                 }
+
+                db.query(
+                  "SELECT course_title from courses WHERE course_id = ?",
+                  [course_id],
+                  (err, result) => {
+                    if (err) throw err;
+
+                    console.log(result[0].course_title);
+
+                    db.query(
+                      "SELECT user_name FROM user WHERE user_id = ?",
+                      [trainer_id],
+                      (err, res) => {
+                        if (err) throw err;
+
+                        const transporter = nodemailer.createTransport({
+                          service: "gmail",
+                          host: "smtp.gmail.com",
+                          port: 587,
+                          auth: {
+                            user: "lms.project.batch8@gmail.com",
+                            pass: "suhb pbaz mhsy ljsa",
+                          },
+                        });
+
+                        transporter.sendMail({
+                          from: {
+                            name: "Pursuit LMS",
+                            address: "lms.project.batch8@gmail.com",
+                          },
+                          to: [`${trainee_email}`],
+                          subject:
+                            "Enrollment Confirmation for Training Course",
+                          text: `Hi ${trainee_name},
+
+I hope this message finds you well.
+
+You have been assigned a ${
+                            result[0].course_title
+                          } training course as part of your ongoing development program.
+
+Course Details:
+
+Course Name: ${result[0].course_title}
+Start Date: ${new Date()}
+Instructor: ${res[0].user_name}
+
+Looking forward to seeing you excel in this training.
+
+Best regards,
+
+Pursuit LMS
+Pursuit Software
+                            `,
+                        });
+                      },
+                    );
+                  },
+                );
 
                 const videoCountSql = `SELECT video_count FROM courses WHERE course_id = ?`;
 
@@ -168,10 +227,9 @@ router.post("/quiz", (req, res) => {
         });
       } else {
         const trainee_name = trainee_ids[index].label;
-        console.log(trainee_ids[index].label);
 
         db.query(
-          "SELECT user_id FROM user WHERE user_name = ?",
+          "SELECT user_id, user_email FROM user WHERE user_name = ?",
           [trainee_name],
           (err, result) => {
             if (err) {
@@ -183,7 +241,7 @@ router.post("/quiz", (req, res) => {
               });
             }
             const trainee_id = result[0].user_id;
-            console.log(trainee_id);
+            const trainee_email = result[0].user_email;
 
             const assignSql = `
                 INSERT INTO assigned (trainer_id, trainee_id, quiz_id, course_id, assigned_at)
@@ -197,11 +255,71 @@ router.post("/quiz", (req, res) => {
                 if (assignErr) {
                   return db.rollback(() => {
                     res.status(500).send({
-                      message: "Error assigning course",
+                      message: "Error assigning quiz",
                       error: assignErr,
                     });
                   });
                 }
+
+                db.query(
+                  "SELECT title from Quiz WHERE quiz_id = ?",
+                  [quiz_id],
+                  (err, result) => {
+                    if (err) throw err;
+
+                    console.log(result[0].title);
+
+                    db.query(
+                      "SELECT user_name FROM user WHERE user_id = ?",
+                      [trainer_id],
+                      (err, res) => {
+                        if (err) throw err;
+
+                        const transporter = nodemailer.createTransport({
+                          service: "gmail",
+                          host: "smtp.gmail.com",
+                          port: 587,
+                          auth: {
+                            user: "lms.project.batch8@gmail.com",
+                            pass: "suhb pbaz mhsy ljsa",
+                          },
+                        });
+
+                        transporter.sendMail({
+                          from: {
+                            name: "Pursuit LMS",
+                            address: "lms.project.batch8@gmail.com",
+                          },
+                          to: [`${trainee_email}`],
+                          subject:
+                            "Enrollment Confirmation for Training Course",
+                          text: `Hi ${trainee_name},
+
+I hope this message finds you well.
+
+You have been assigned a ${
+                            result[0].title
+                          } as part of your ongoing development program.
+
+Quiz Details:
+
+  Quiz Name: ${result[0].title}
+  Date: ${new Date()}
+  Instructor: ${res[0].user_name}
+
+Looking forward to seeing you excel in this quiz.
+
+Best regards,
+
+Pursuit LMS
+Pursuit Software
+                            `,
+                        });
+                      },
+                    );
+                  },
+                );
+
                 processTrainee(index + 1);
               },
             );

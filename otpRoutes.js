@@ -21,7 +21,7 @@ router.post('/send-otp', async (req, res) => {
     const info = await transporter.sendMail({
         from: {
             name: "Pursuit LMS",
-            address: "souvik13.12.2000@gmail.com"
+            address: "lms.project.batch8@gmail.com"
         },
         to: [`${email}`],
         subject: "Forgot Password OTP", 
