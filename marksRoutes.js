@@ -24,13 +24,13 @@ router.get("/:quizId", (req, res) => {
 });
 
 router.get("/", (req, res) => {
-  const { user_id } = req.query;
+  const { user_id, quiz_id } = req.query;
 
   db.query(
-    "SELECT * FROM Marks m JOIN Quiz q on m.quiz_id = q.quiz_id WHERE m.user_id = ?",
-    [user_id],
+    "SELECT * FROM Marks WHERE user_id = ? AND quiz_id = ?",
+    [user_id, quiz_id],
     (err, data) => {
-      if (err) throw res.json(err);
+      if (err) throw err;
       return res.json(data);
     },
   );
