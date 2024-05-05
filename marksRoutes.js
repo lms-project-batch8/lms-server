@@ -26,14 +26,25 @@ router.get("/:quizId", (req, res) => {
 router.get("/", (req, res) => {
   const { user_id, quiz_id } = req.query;
 
-  db.query(
-    "SELECT * FROM Marks WHERE user_id = ? AND quiz_id = ?",
-    [user_id, quiz_id],
-    (err, data) => {
-      if (err) throw err;
-      return res.json(data);
-    },
-  );
+  if (!quiz_id) {
+    db.query(
+      "SELECT * FROM Marks m JOIN Quiz q ON q.quiz_id = m.quiz_id WHERE user_id = ?",
+      [user_id, quiz_id],
+      (err, data) => {
+        if (err) throw err;
+        return res.json(data);
+      },
+    );
+  } else {
+    db.query(
+      "SELECT EXISTS (SELECT 1 FROM Marks WHERE user_id = ? AND quiz_id = ?) AS record_exists",
+      [user_id, quiz_id],
+      (err, data) => {
+        if (err) throw err;
+        return res.json(data);
+      },
+    );
+  }
 });
 
 export default router;
