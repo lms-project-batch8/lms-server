@@ -106,7 +106,7 @@ You have been assigned a ${
 Course Details:
 
 Course Name: ${result[0].course_title}
-Start Date: ${new Date()}
+Start Date: ${new Date().toLocaleDateString("de-DE")}
 Instructor: ${res[0].user_name}
 
 Looking forward to seeing you excel in this training.
@@ -304,7 +304,7 @@ You have been assigned a ${
 Quiz Details:
 
   Quiz Name: ${result[0].title}
-  Date: ${new Date()}
+  Date: ${new Date().toLocaleDateString("de-DE")}
   Instructor: ${res[0].user_name}
 
 Looking forward to seeing you excel in this quiz.
