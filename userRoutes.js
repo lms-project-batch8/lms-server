@@ -59,25 +59,43 @@ router.delete("/:id", (req, res) => {
 });
 
 router.put("/:id", (req, res) => {
-  const userId = req.params.id;
-  const updateFields = Object.entries(req.body)
-    .filter(([_, value]) => value !== undefined)
-    .map(([key, value]) => `${key} = ?`)
-    .join(", ");
+  const user_id = req.params.id;
+  const fieldMapping = {
+    userName: "user_name",
+    userEmail: "user_email",
+    userPassword: "user_password",
+    userRole: "user_role",
+  };
 
-  const values = Object.values(req.body).filter((value) => value !== undefined);
-  values.push(userId);
+  // Filter and map the fields that are not undefined
+  const updates = Object.entries(req.body)
+    .filter(([key, value]) => value !== undefined && fieldMapping[key]) // Ensure the field is mappable
+    .map(([key, value]) => ({
+      field: fieldMapping[key], // Use the database field name
+      value: value,
+    }));
 
-  if (!updateFields) {
+  if (updates.length === 0) {
     return res
       .status(400)
       .json({ error: "No valid fields provided for update." });
   }
 
-  const q = `UPDATE user SET ${updateFields} WHERE user_id = ?`;
+  // Construct the SQL update clause
+  const updateFields = updates.map((u) => `${u.field} = ?`).join(", ");
+  const values = updates.map((u) => u.value);
 
-  db.query(q, values, (err, data) => {
-    if (err) throw err;
+  // Add the user ID at the end of the values array for the WHERE clause
+  values.push(user_id);
+
+  const query = `UPDATE user SET ${updateFields} WHERE user_id = ?`;
+
+  // Execute the query
+  db.query(query, values, (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
     return res.json("User has been updated successfully");
   });
 });
