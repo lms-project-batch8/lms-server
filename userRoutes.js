@@ -65,6 +65,7 @@ router.put("/:id", (req, res) => {
     userEmail: "user_email",
     userPassword: "user_password",
     userRole: "user_role",
+    isActive: "isActive"
   };
 
   // Filter and map the fields that are not undefined
